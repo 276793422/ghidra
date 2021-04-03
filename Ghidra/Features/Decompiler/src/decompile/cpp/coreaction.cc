@@ -1077,6 +1077,8 @@ SymbolEntry *ActionConstantPtr::isPointer(AddrSpace *spc,Varnode *vn,PcodeOp *op
     // Make sure the constant is in the expected range for a pointer
     if (spc->getPointerLowerBound() > vn->getOffset())
       return (SymbolEntry *)0;
+    if (spc->getPointerUpperBound() < vn->getOffset())
+      return (SymbolEntry *)0;
     // Check if the constant looks like a single bit or mask
     if (bit_transitions(vn->getOffset(),vn->getSize()) < 3)
       return (SymbolEntry *)0;
@@ -1087,8 +1089,16 @@ SymbolEntry *ActionConstantPtr::isPointer(AddrSpace *spc,Varnode *vn,PcodeOp *op
     // Since we are looking for a global address
     // Assume it is address tied and use empty usepoint
   SymbolEntry *entry = data.getScopeLocal()->getParent()->queryContainer(rampoint,1,Address());
-  if (needexacthit&&(entry != (SymbolEntry *)0)) {
-    if (entry->getAddr() != rampoint)
+  if (entry != (SymbolEntry *)0) {
+    Datatype *ptrType = entry->getSymbol()->getType();
+    if (ptrType->getMetatype() == TYPE_ARRAY) {
+      Datatype *ct = ((TypeArray *)ptrType)->getBase();
+      // In the special case of strings (character arrays) we allow the constant pointer to
+      // refer to the middle of the string
+      if (ct->isCharPrint())
+	needexacthit = false;
+    }
+    if (needexacthit && entry->getAddr() != rampoint)
       return (SymbolEntry *)0;
   }
   return entry;
@@ -1197,7 +1207,6 @@ int4 ActionDeindirect::apply(Funcdata &data)
 	    // We use isInputLocked as a test of whether the
 	    // function pointer prototype has been applied before
 	    fc->forceSet(data,*fp);
-	    data.updateOpFromSpec(fc);
 	    count += 1;
 	  }
 	}
@@ -1773,6 +1782,7 @@ void ActionReturnRecovery::buildReturnOutput(ParamActive *active,PcodeOp *retop,
     PcodeOp *newop = data.newOp(2,retop->getAddr());
     data.opSetOpcode(newop,CPUI_PIECE);
     Varnode *newwhole = data.newVarnodeOut(trialhi.getSize()+triallo.getSize(),joinaddr,newop);
+    newwhole->setWriteMask();		// Don't let new Varnode cause additional heritage
     data.opInsertBefore(newop,retop);
     newparam.pop_back();
     newparam.back() = newwhole;
@@ -1804,7 +1814,8 @@ void ActionReturnRecovery::buildReturnOutput(ParamActive *active,PcodeOp *retop,
 	if (vn->getAddr() < addr)
 	  addr = vn->getAddr();
 	Varnode *newout = data.newVarnodeOut(preexist->getSize()+vn->getSize(),addr,newop);
-	data.opSetInput(newop,vn,0); // Most sig part
+	newout->setWriteMask();		// Don't let new Varnode cause additional heritage
+	data.opSetInput(newop,vn,0);	// Most sig part
 	data.opSetInput(newop,preexist,1);
 	data.opInsertBefore(newop,retop);
 	preexist = newout;
@@ -2150,7 +2161,6 @@ int4 ActionDefaultParams::apply(Funcdata &data)
 	fc->setInternal(evalfp,data.getArch()->types->getTypeVoid());
     }
     fc->insertPcode(data);	// Insert any necessary pcode
-    data.updateOpFromSpec(fc);
   }
   return 0;			// Indicate success
 }
@@ -2280,6 +2290,16 @@ int4 ActionSetCasts::apply(Funcdata &data)
 	TypePointer *ct = (TypePointer *)op->getIn(0)->getHigh()->getType();
 	if ((ct->getMetatype() != TYPE_PTR)||(ct->getPtrTo()->getSize() != AddrSpace::addressToByteInt(sz, ct->getWordSize())))
 	  data.opUndoPtradd(op,true);
+      }
+      else if (opc == CPUI_PTRSUB) {	// Check for PTRSUB that no longer fits pointer
+	if (!op->getIn(0)->getHigh()->getType()->isPtrsubMatching(op->getIn(1)->getOffset())) {
+	  if (op->getIn(1)->getOffset() == 0) {
+	    data.opRemoveInput(op, 1);
+	    data.opSetOpcode(op, CPUI_COPY);
+	  }
+	  else
+	    data.opSetOpcode(op, CPUI_INT_ADD);
+	}
       }
       for(int4 i=0;i<op->numInput();++i) // Do input casts first, as output may depend on input
 	count += castInput(op,i,data,castStrategy);
@@ -3457,9 +3477,10 @@ bool ActionDeadCode::isEventualConstant(Varnode *vn,int4 addCount,int4 loadCount
 /// \brief Check if there are any unconsumed LOADs that may be from volatile addresses.
 ///
 /// It may be too early to remove certain LOAD operations even though their result isn't
-/// consumed because it be of a volatile address with side effects.  If a LOAD meets this
+/// consumed because it may be of a volatile address with side effects.  If a LOAD meets this
 /// criteria, it is added to the worklist and \b true is returned.
 /// \param data is the function being analyzed
+/// \param worklist is the container of consumed Varnodes to further process
 /// \return \b true if there was at least one LOAD added to the worklist
 bool ActionDeadCode::lastChanceLoad(Funcdata &data,vector<Varnode *> &worklist)
 
@@ -3916,9 +3937,9 @@ int4 ActionInputPrototype::apply(Funcdata &data)
       }
     }
     if (data.isHighOn())
-      data.getFuncProto().updateInputTypes(triallist,&active);
+      data.getFuncProto().updateInputTypes(data,triallist,&active);
     else
-      data.getFuncProto().updateInputNoTypes(triallist,&active,data.getArch()->types);
+      data.getFuncProto().updateInputNoTypes(data,triallist,&active);
   }
   data.clearDeadVarnodes();
 #ifdef OPACTION_DEBUG
@@ -4226,7 +4247,7 @@ Datatype *ActionInferTypes::propagateAddIn2Out(TypeFactory *typegrp,PcodeOp *op,
   int4 offset = propagateAddPointer(op,inslot);
   if (offset==-1) return op->getOut()->getTempType(); // Doesn't look like a good pointer add
   uintb uoffset = AddrSpace::addressToByte(offset,((TypePointer *)rettype)->getWordSize());
-  if (tstruct->getSize() > 0)
+  if (tstruct->getSize() > 0 && !tstruct->isVariableLength())
     uoffset = uoffset % tstruct->getSize();
   if (uoffset==0) {
     if (op->code() == CPUI_PTRSUB) // Go down at least one level
@@ -4401,7 +4422,7 @@ bool ActionInferTypes::propagateTypeEdge(TypeFactory *typegrp,PcodeOp *op,int4 i
     }
     else if (alttype->getMetatype()==TYPE_PTR) {
       newtype = ((TypePointer *)alttype)->getPtrTo();
-      if (newtype->getSize() != outvn->getTempType()->getSize()) // Size must be appropriate
+      if (newtype->getSize() != outvn->getTempType()->getSize() || newtype->isVariableLength()) // Size must be appropriate
 	newtype = outvn->getTempType();
     }
     else
@@ -4414,7 +4435,7 @@ bool ActionInferTypes::propagateTypeEdge(TypeFactory *typegrp,PcodeOp *op,int4 i
     }
     else if (alttype->getMetatype()==TYPE_PTR) {
       newtype = ((TypePointer *)alttype)->getPtrTo();
-      if (newtype->getSize() != outvn->getTempType()->getSize())
+      if (newtype->getSize() != outvn->getTempType()->getSize() || newtype->isVariableLength())
 	newtype = outvn->getTempType();
     }
     else
@@ -4512,7 +4533,7 @@ void ActionInferTypes::propagateOneType(TypeFactory *typegrp,Varnode *vn)
   PropagationState *ptr;
   vector<PropagationState> state;
 
-  state.push_back(PropagationState(vn));
+  state.emplace_back(vn);
   vn->setMark();
 
   while(!state.empty()) {
@@ -4525,7 +4546,7 @@ void ActionInferTypes::propagateOneType(TypeFactory *typegrp,Varnode *vn)
       if (propagateTypeEdge(typegrp,ptr->op,ptr->inslot,ptr->slot)) {
 	vn = (ptr->slot==-1) ? ptr->op->getOut() : ptr->op->getIn(ptr->slot);
 	ptr->step();		// Make sure to step before push_back
-	state.push_back(PropagationState(vn));
+	state.emplace_back(vn);
 	vn->setMark();
       }
       else
@@ -4730,6 +4751,7 @@ int4 ActionInferTypes::apply(Funcdata &data)
     }
     return 0;
   }
+  data.getScopeLocal()->applyTypeRecommendations();
   buildLocaltypes(data);	// Set up initial types (based on local info)
   for(iter=data.beginLoc();iter!=data.endLoc();++iter) {
     vn = *iter;
@@ -4999,6 +5021,7 @@ void ActionDatabase::universalAction(Architecture *conf)
 	actprop->addRule( new RulePiece2Zext("analysis") );
 	actprop->addRule( new RulePiece2Sext("analysis") );
 	actprop->addRule( new RulePopcountBoolXor("analysis") );
+	actprop->addRule( new RuleXorSwap("analysis") );
 	actprop->addRule( new RuleSubvarAnd("subvar") );
 	actprop->addRule( new RuleSubvarSubpiece("subvar") );
 	actprop->addRule( new RuleSplitFlow("subvar") );
@@ -5078,6 +5101,7 @@ void ActionDatabase::universalAction(Architecture *conf)
   act->addAction( actcleanup );
 
   act->addAction( new ActionPreferComplement("blockrecovery") );
+  act->addAction( new ActionStructureTransform("blockrecovery") );
   act->addAction( new ActionNormalizeBranches("normalizebranches") );
   act->addAction( new ActionAssignHigh("merge") );
   act->addAction( new ActionMergeRequired("merge") );

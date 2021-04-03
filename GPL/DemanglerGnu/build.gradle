@@ -1,3 +1,6 @@
+/* ###
+ * IP: Public Domain
+ */
 apply from: file("../gpl.gradle").getCanonicalPath()
 
 if (findProject(':Generic') != null) {
@@ -142,7 +145,6 @@ model {
 		all{ b ->
 		
 			def version = b.getApplication().getName()
-			println "have binary: " + b 
 		
 			if (version.equals(v33_1)) {
 				if (toolChain in Gcc) {							

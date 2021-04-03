@@ -1558,6 +1558,62 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	}
 
 	@Test
+	public void testExtendedTypes__P() throws Exception {
+		mangled = "?Name@@3_PA";
+		msTruth = "UNKNOWN Name";
+		mdTruth = msTruth;
+		demangleAndTest();
+	}
+
+	@Test
+	public void testExtendedTypes__Q() throws Exception {
+		mangled = "?Name@@3_QA";
+		msTruth = "char8_t Name";
+		mdTruth = msTruth;
+		demangleAndTest();
+	}
+
+	@Test
+	public void testExtendedTypes__R() throws Exception {
+		mangled = "?Name@@3_RA";
+		msTruth = "<unknown> Name";
+		mdTruth = msTruth;
+		demangleAndTest();
+	}
+
+	@Test
+	public void testExtendedTypes__S() throws Exception {
+		mangled = "?Name@@3_SA";
+		msTruth = "char16_t Name";
+		mdTruth = msTruth;
+		demangleAndTest();
+	}
+
+	@Test
+	public void testExtendedTypes__T() throws Exception {
+		mangled = "?Name@@3_TA";
+		msTruth = "UNKNOWN Name";
+		mdTruth = msTruth;
+		demangleAndTest();
+	}
+
+	@Test
+	public void testExtendedTypes__U() throws Exception {
+		mangled = "?Name@@3_UA";
+		msTruth = "char32_t Name";
+		mdTruth = msTruth;
+		demangleAndTest();
+	}
+
+	@Test
+	public void testExtendedTypes__V() throws Exception {
+		mangled = "?Name@@3_VA";
+		msTruth = "UNKNOWN Name";
+		mdTruth = msTruth;
+		demangleAndTest();
+	}
+
+	@Test
 	public void testExtendedTypes__W() throws Exception {
 		mangled = "?Name@@3_WA";
 		msTruth = "wchar_t Name";
@@ -2508,7 +2564,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	//  It also seems to indicate that the "int" portion would be the referred-to type and the rest of the function spec would be part of the the function info.
 	//  Other information at one time, led me to believe that the return type of a function is special... need to rekinkdle those thoughts, but think related to nested
 	//  functions, such as function returning a function pointer..
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testCVModifiersBased5_Variation_aj() throws Exception {
 		mangled = "?Var@@3P_CClass@@D5AHD@ZEP0";
@@ -2666,7 +2722,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 		demangleAndTest();
 	}
 
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testCVModifiersBased5_Variation_be() throws Exception {
 		mangled = "?Var@@3P_CClass@@D5AHD@ZEP0";
@@ -7800,7 +7856,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 		demangleAndTest();
 	}
 
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testManagedProperties_And_DollarDollar_Debug_In_Progress_av() throws Exception {
 		//hand-made $$A ($$A works for functions: 6, 7, 8, 9; but nothing yet for non-function modifiers)
@@ -8435,7 +8491,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 		demangleAndTest();
 	}
 
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testManagedProperties_CliArray_QuestionModifier() throws Exception {
 		mangled = "?var@@3?E$2AAHA";
@@ -8825,7 +8881,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	//  is still under construction.  The MDArrayReferenceType (Y (Y01)) is only to be found in the MDmodifierType.
 	//  Note that the EFGHI and ABCD... MDCVMod processing both can be found for $$C (e.g., we could have
 	//  "?var@@3$$CEBHA" as a valid symbol). I just added the test for this above (should pass with the current code).
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testDataReferenceType_withArrayFail() throws Exception {
 		mangled = "?var@@3$$CBY01HA";
@@ -9566,7 +9622,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 		demangleAndTest();
 	}
 
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testManagedProperties_And_DollarDollar_Debug_In_Progress_moremoremore2_variation030()
 			throws Exception {
@@ -9586,7 +9642,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	}
 
 	//TODO: CREATE mstruth output (dispatcher)
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testManagedProperties_And_DollarDollar_Debug_In_Progress_moremoremore2_variation032()
 			throws Exception {
@@ -9599,7 +9655,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	}
 
 	//TODO: CREATE mstruth output (dispatcher)
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testManagedProperties_And_DollarDollar_Debug_In_Progress_moremoremore2_variation033()
 			throws Exception {
@@ -9692,7 +9748,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 		demangleAndTest();
 	}
 
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testManagedProperties_And_DollarDollar_Debug_In_Progress_moremoremore2_variation042()
 			throws Exception {
@@ -11106,7 +11162,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 		demangleAndTest();
 	}
 
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void test_e304() throws Exception {
 		mangled =
@@ -11226,7 +11282,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	}
 
 	// chars 0-37
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testGDTSD304_a_breakdown_analysis_011() throws Exception {
 		mangled = "?__abi_name0?$name1@P$AAVname2@name3@@";
@@ -11358,7 +11414,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 		demangleAndTest();
 	}
 
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testGDTSD304_SysSet_h_mod4() throws Exception {
 		mangled = "?name0@?Qname1@name2@@?Qname3@name4@@name5@@3HA";
@@ -11369,7 +11425,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	}
 
 	//TODO: CREATE mstruth output (dispatcher)
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testGDTSD304_SysSet_h_mod5() throws Exception {
 		mangled = "?name0@?Qname1@?Qname2@name3@@@name4@@3HA"; //Nested "?Q"
@@ -11389,7 +11445,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 		demangleAndTest();
 	}
 
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testWin10_1015829() throws Exception { //was: testWin10_001
 		mangled =
@@ -11455,7 +11511,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	//NOTE: This test is failing (we fail to fail) because we allow $template to be parsed as fragment and don't error when the symbol
 	//  is truncated (no typeinfo).
 	//Test showing that we cannot have MDTemplateNameAndArgumentsList after CodeView
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testCodeView_Simple_01test() throws Exception {
 		mangled = "?@?$template@H";
@@ -11561,7 +11617,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	//Seems like a pattern where they truncate the symbol and append a 32-character (128-bit) hash code on the end instead.  Not sure what/how we
 	// should deal with this (and potentially others--this came from Windows 7): give partial results?  By running with parse info output, we can
 	// see that it is a series of nested templates to start, which cuts off during a deep nesting.
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testUnknown3() throws Exception {
 		mangled =
@@ -13717,7 +13773,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	//20170522 BEST GUESS (see MDQualification): Get some sort of result if we replace "?CimDisableDedupVolume" with "CimDisableDedupVolume@" in two places.
 	// Perhaps "?C" means literal string, up to, but not including the next invalid char in the sequence (so a missing '@' can be tolerated)
 	// --so would also need to strip the 'C' in the results.
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testWin10_0358058() throws Exception {
 		mangled =
@@ -13847,7 +13903,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	}
 
 	//MSFT problem
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testWin10_0356843() throws Exception {
 		mangled =
@@ -13928,7 +13984,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	//Note, however, that the test is still not processed correctly for mdtruth, which
 	// is only a guess.  A fix to process it (an MDMANG SPECIALIZATION used in MDQual)
 	// causes a different test to fail: testWin10_0022127(). TODO: figure this out.
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testWin10_6798753() throws Exception {
 		mangled =
@@ -13976,7 +14032,7 @@ public class MDMangBaseTest extends AbstractGenericTest {
 	}
 
 	//I haven't determined what the true output should be yet.
-	@Category(MDMangFailingTests.class)
+	@Category(MDMangFailingTestCategory.class)
 	@Test
 	public void testWin10_6798753_breakdown5() throws Exception {
 		mangled = "?$vector@UVolumeWarning@?BL@?CimStartDedupJob@@";
@@ -14489,6 +14545,21 @@ public class MDMangBaseTest extends AbstractGenericTest {
 		mangled = "?catch$0@?0???@f4873c94f485cd6716c2319fc51ac714@@4HA";
 		msTruth = "";
 		mdTruth = "int ``f4873c94f485cd6716c2319fc51ac714''::`1'::catch$0";
+		demangleAndTest();
+	}
+
+	// Contrived example to make sure that the nameModifier (pushed into MDBasicName) and
+	//  the recent addition, castTypeString (pushed to MDBasicName and below), play well
+	//  together.  It also shows, that they should probably both be considered separate
+	//  (i.e., do not use nameModifier to push in the castTypeString... we would have to
+	//  manage merging and multiple calls... does not make sense to even consider it).
+	// Note: the cast operator used to have the cast-to type emitted in MDFunctionType,
+	//  and me moved it to MDSpecialName.
+	@Test
+	public void testCastOperatorWithAdjustorModifier() throws Exception {
+		mangled = "??Bname@@O7AAHXZ";
+		msTruth = "[thunk]:protected: virtual __cdecl name::operator int`adjustor{8}' (void)";
+		mdTruth = msTruth;
 		demangleAndTest();
 	}
 

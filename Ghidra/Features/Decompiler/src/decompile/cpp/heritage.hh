@@ -47,12 +47,12 @@ private:
   map<Address,SizePass> themap;	///< Heritaged addresses mapped to range size and pass number
 public:
   iterator add(Address addr,int4 size,int4 pass,int4 &intersect); ///< Mark new address as \b heritaged
-  iterator find(Address addr);			      ///< Look up if/how given address was heritaged
-  int4 findPass(Address addr) const;		      ///< Look up if/how given address was heritaged
-  void erase(iterator iter) { themap.erase(iter); }   ///< Remove a particular entry from the map
-  iterator begin(void) { return themap.begin(); }     ///< Get starting iterator over heritaged ranges
-  iterator end(void) { return themap.end(); }	      ///< Get ending iterator over heritaged ranges
-  void clear(void) { themap.clear(); }		      ///< Clear the map of heritaged ranges
+  iterator find(const Address &addr);			///< Look up if/how given address was heritaged
+  int4 findPass(const Address &addr) const;		///< Look up if/how given address was heritaged
+  void erase(iterator iter) { themap.erase(iter); }	///< Remove a particular entry from the map
+  iterator begin(void) { return themap.begin(); }	///< Get starting iterator over heritaged ranges
+  iterator end(void) { return themap.end(); }		///< Get ending iterator over heritaged ranges
+  void clear(void) { themap.clear(); }			///< Clear the map of heritaged ranges
 };
 
 /// \brief Priority queue for the phi-node (MULTIEQUAL) placement algorithm
@@ -229,7 +229,8 @@ class Heritage {
   void floatExtensionWrite(Varnode *vn,JoinRecord *joinrec);
   void processJoins(void);
   void buildADT(void);		///< Build the augmented dominator tree
-  int4 collect(Address addr,int4 size,vector<Varnode *> &read,vector<Varnode *> &write,vector<Varnode *> &input) const;
+  void removeRevisitedMarkers(const vector<Varnode *> &remove,const Address &addr,int4 size);
+  int4 collect(Address addr,int4 size,vector<Varnode *> &read,vector<Varnode *> &write,vector<Varnode *> &input,vector<Varnode *> &remove) const;
   bool callOpIndirectEffect(const Address &addr,int4 size,PcodeOp *op) const;
   Varnode *normalizeReadSize(Varnode *vn,const Address &addr,int4 size);
   Varnode *normalizeWriteSize(Varnode *vn,const Address &addr,int4 size);

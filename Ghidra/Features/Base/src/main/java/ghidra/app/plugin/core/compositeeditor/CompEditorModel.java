@@ -126,6 +126,7 @@ public abstract class CompEditorModel extends CompositeEditorModel {
 			return true;
 		}
 		finally {
+			provider.updateTitle();
 //			selection = saveSelection;
 			setSelection(saveSelection);
 			originalDTM.endTransaction(transactionID, true);
@@ -1434,6 +1435,8 @@ public abstract class CompEditorModel extends CompositeEditorModel {
 							"\".";
 						setStatus(msg, true);
 					}
+					// NOTE: depending upon event sequence and handling a 
+					// re-load may have occured and replcement may be uneccessary
 					try {
 						viewDTM.replaceDataType(dt, newDataType, true);
 					}
